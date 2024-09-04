@@ -1,0 +1,44 @@
+[build-system]
+requires = [
+    "setuptools",
+    "setuptools-scm"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ml_models"
+version = "0.1.0"
+authors = [
+#    {name = "Vladislav Meshkov", email = ""},
+]
+maintainers = [
+#    {name = "Vladislav Meshkov", email = ""},
+    {name = "Egor Vashkevich", email = "goshikvash@gmail.com"},
+]
+description = "ml_models"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dynamic = [
+    "dependencies",
+]
+
+################################################################################
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"*" = ["*.env", "*.ini"]
+#co_gen_model = ["*.ini"]
+
+################################################################################

@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  rabbitmq:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: "${COMPOSE_PROJECT_NAME}_rabbitmq"
+    container_name: "${COMPOSE_PROJECT_NAME}_rabbitmq"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+#    volumes:
+#      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+#      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    restart: unless-stopped
+    networks:
+      RMQ_NET:
+        aliases:
+          - "${RMQ_NET_ALIAS}"
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 20s
+      timeout: 3s
+      retries: 3
+
+networks:
+  RMQ_NET:
+    name: "${RMQ_NET}"

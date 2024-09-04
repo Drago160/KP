@@ -1,0 +1,8 @@
+{
+    "request_name": "map_offers_to_messages",
+    "request_data": {
+        "message_group_id_begin": 1,
+        "message_group_id_end": 100,
+        "overwrite": false
+    }
+}

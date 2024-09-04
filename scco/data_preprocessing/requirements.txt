@@ -1,0 +1,6 @@
+emoji
+Levenshtein
+pandas
+pika
+pymorphy2
+regex

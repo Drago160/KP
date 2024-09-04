@@ -1,0 +1,92 @@
+version: "3.8"
+
+# Entry points are set inside dockerfiles of each service.
+
+services:
+#  db_crud_execution:
+#    profiles:
+#      - all
+#      - crud
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    build:
+#      context: "${DB_CRUD_EXECUTION_FOLDER}"
+#      dockerfile: Dockerfile
+#    image: "${COMPOSE_PROJECT_NAME}_${DB_CRUD_EXECUTION_FOLDER}"
+#    container_name: "${COMPOSE_PROJECT_NAME}_${DB_CRUD_EXECUTION_FOLDER}"
+#    env_file:
+#      - .env
+#      - "${DB_CRUD_EXECUTION_FOLDER}/.env.secret.postgres"
+##    restart: "no"
+#    restart: on-failure
+#    networks:
+#      int_network:
+#        aliases:
+#          - "${DB_FUNCTIONAL_SERVICE_NET_ALIAS}"
+#      rmq_network:
+#      postgres:
+
+  postgres:
+    container_name: "${COMPOSE_PROJECT_NAME}_postgres_container"
+    image: postgres
+    environment:
+      PGDATA: /data/postgres
+    env_file:
+      - "../.env.secret.postgres"
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    container_name: "${COMPOSE_PROJECT_NAME}_pgadmin_container"
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+
+networks:
+#  rmq_network:
+#    name: "${RMQ_NET}"
+#    external: true
+#  int_network:
+#    name: "${INT_NET}"
+  postgres:
+    name: "${COMPOSE_PROJECT_NAME}_network"
+    driver: bridge
+
+
+#  To reuse volumes across multiple services
+volumes:
+  postgres:
+    name: "${COMPOSE_PROJECT_NAME}_postgres_volume"
+  pgadmin:
+    name: "${COMPOSE_PROJECT_NAME}_pgadmin_volume"
+
+#secrets:
+#  pg_user:
+#    file: "./${DB_CRUD_EXECUTION_FOLDER}/secrets/pg_user"
+#  pg_password:
+#    file: "./${DB_CRUD_EXECUTION_FOLDER}/secrets/pg_password"
+#  my_other_secret:
+#    external: true
+
+################################################################

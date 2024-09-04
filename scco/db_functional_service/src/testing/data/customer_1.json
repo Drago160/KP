@@ -1,0 +1,34 @@
+{
+  "customer_id": "customer_1",
+  "contact_info": "<@telegram_link>",
+  "company_name": "Web Сфера",
+  "black_list": [
+    "php",
+    "wordpress",
+    "c#"
+  ],
+  "tags": [
+    "frontend",
+    "вёрстка"
+  ],
+  "white_list": [
+    "frontend",
+    "вёрстка",
+    "javascript",
+    "веб-сайт"
+  ],
+  "specific_features": [
+    "25-летний опыт.",
+    "Cотни довольных клиентов."
+  ],
+  "customer_services": [
+    {
+      "service_name": "Создание MVP",
+      "service_desc": "Запуск нового продукта."
+    },
+    {
+      "service_name": "Модернизация UI",
+      "service_desc": "Преобразуем устаревший UI."
+    }
+  ]
+}

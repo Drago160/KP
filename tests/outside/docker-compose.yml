@@ -1,0 +1,55 @@
+version: "3.8"
+
+# Environment variables are declared in .env file.
+
+services:
+  client_queries:
+    profiles:
+      - all
+      - queries
+    build:
+      context: client_queries
+      dockerfile: Dockerfile
+    image: "${COMPOSE_PROJECT_NAME}_client_queries"
+    container_name: "${COMPOSE_PROJECT_NAME}_client_queries"
+    env_file:
+      - .env
+#      - .secrets.env
+      - client_queries/.env
+    volumes:
+      - "${OUTSIDE_VOLUME_HOST}:${OUTSIDE_VOLUME_DOCKER}" # csv file
+    restart: on-failure
+    networks:
+      RMQ_NET:
+        aliases:
+          - "${CLIENT_QUERIES_NET_ALIAS}"
+
+  generated_offers:
+    profiles:
+      - all
+      - offers
+    build:
+      context: generated_offers
+      dockerfile: Dockerfile
+    image: "${COMPOSE_PROJECT_NAME}_generated_offers"
+    container_name: "${COMPOSE_PROJECT_NAME}_generated_offers"
+    env_file:
+      - .env
+#      - .secrets.env
+#      - generated_offers/.env
+    restart: on-failure
+    networks:
+      RMQ_NET:
+        aliases:
+          - "${GENERATED_OFFERS_NET_ALIAS}"
+
+networks:
+  RMQ_NET:
+    name: "${RMQ_NET}"
+    external: true
+
+secrets:
+  my_secret:
+    file: .secrets.env
+#  my_other_secret:
+#    external: true

@@ -1,0 +1,13 @@
+# IDE
+.idea
+
+# Build
+__pycache__
+
+# Setuptools caching
+build
+dist
+*.egg-info
+
+# Secrets
+.env.secret*

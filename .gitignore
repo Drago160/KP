@@ -1,0 +1,39 @@
+# Mac
+.DS_Store
+
+# Visual Studio Code
+.vscode/
+.history/
+
+# JetBrains
+.idea/
+
+# Python
+__pycache__/
+
+# Setuptools caching
+build/
+dist/
+*.egg-info/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+profile_default/
+ipython_config.py
+
+# Environments
+#.env
+.venv*/
+env/
+venv/
+
+# Java
+*.class
+
+# Log files
+*.log
+
+# Others
+.env.secret*
+*.secret.env
+volumes/

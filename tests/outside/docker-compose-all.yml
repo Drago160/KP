@@ -1,0 +1,84 @@
+version: "3.8"
+
+# Environment variables are declared in .env file.
+
+services:
+  rabbitmq:
+    container_name: "${COMPOSE_PROJECT_NAME}_rabbitmq"
+    build:
+      context: rabbitmq
+      dockerfile: Dockerfile
+#    ports:
+#      - "15672:15672"
+#      - "5672:5672"
+#    environment:
+#      ENV_VAR: ${VAR_VALUE}
+#    volumes:
+#      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+#      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    restart: unless-stopped
+    networks:
+      RMQ_NET:
+        aliases:
+          - "${RMQ_NET_ALIAS}"
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 20s
+      timeout: 3s
+      retries: 3
+
+  client_queries:
+    container_name: "${COMPOSE_PROJECT_NAME}_client_queries"
+    build:
+      context: client_queries
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+#      - .secrets.env
+      - client_queries/.env
+#    environment:
+#      RMQ_NET_ALIAS: "${RMQ_NET_ALIAS}"
+#      CLIENT_QUERIES_QUEUE: "${CLIENT_QUERIES_QUEUE}"
+    volumes:
+      - "${OUTSIDE_VOLUME_HOST}:${OUTSIDE_VOLUME_DOCKER}" # csv file
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      RMQ_NET:
+        aliases:
+          - "${CLIENT_QUERIES_NET_ALIAS}"
+
+  generated_offers:
+    container_name: "${COMPOSE_PROJECT_NAME}_generated_offers"
+    build:
+      context: generated_offers
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+#      - .secrets.env
+#      - generated_offers/.env
+#    environment:
+#      RMQ_NET_ALIAS: "${RMQ_NET_ALIAS}"
+#      CLIENT_QUERIES_QUEUE: "${CLIENT_QUERIES_QUEUE}"
+#      GENERATED_OFFERS_QUEUE: "${GENERATED_OFFERS_QUEUE}"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      RMQ_NET:
+        aliases:
+          - "${GENERATED_OFFERS_NET_ALIAS}"
+
+networks:
+  RMQ_NET:
+    name: "${RMQ_NET}"
+
+
+secrets:
+  my_secret:
+    file: .secrets.env
+#  my_other_secret:
+#    external: true

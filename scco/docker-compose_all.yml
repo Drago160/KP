@@ -1,0 +1,146 @@
+version: "3.8"
+
+# Entry points are set inside dockerfiles of each service.
+
+services:
+  data_preprocessing:
+    profiles:
+      - prod
+    image: "${DOCKER_REGISTRY_NAMESPACE}${COMPOSE_PROJECT_NAME}_${DATA_PREPROCESSING_FOLDER}:latest"
+    container_name: "${COMPOSE_PROJECT_NAME}_${DATA_PREPROCESSING_FOLDER}"
+    env_file:
+      - .env
+    restart: "no"
+    #    restart: on-failure
+    networks:
+      rmq_network:
+
+  ml_generation:
+    profiles:
+      - prod
+    image: "${DOCKER_REGISTRY_NAMESPACE}${COMPOSE_PROJECT_NAME}_${ML_GENERATION_FOLDER}:latest"
+    container_name: "${COMPOSE_PROJECT_NAME}_${ML_GENERATION_FOLDER}"
+    env_file:
+      - .env
+    restart: "no"
+    #    restart: on-failure
+    networks:
+      rmq_network:
+
+  pdf_generation:
+    profiles:
+      - prod
+    image: "${DOCKER_REGISTRY_NAMESPACE}${COMPOSE_PROJECT_NAME}_${PDF_GENERATION_FOLDER}:latest"
+    container_name: "${COMPOSE_PROJECT_NAME}_${PDF_GENERATION_FOLDER}"
+    env_file:
+      - .env
+    restart: "no"
+    #    restart: on-failure
+    networks:
+      rmq_network:
+
+  customer_creator:
+    profiles:
+      - prod
+    image: "${DOCKER_REGISTRY_NAMESPACE}${COMPOSE_PROJECT_NAME}_${CUSTOMER_CREATOR_FOLDER}:latest"
+    container_name: "${COMPOSE_PROJECT_NAME}_${CUSTOMER_CREATOR_FOLDER}"
+    env_file:
+      - .env
+    restart: "no"
+    #    restart: on-failure
+    networks:
+      rmq_network:
+
+  db_functional_service:
+    profiles:
+      - crud
+      - prod
+    depends_on:
+      postgres_fs:
+        condition: service_healthy
+    image: "${DOCKER_REGISTRY_NAMESPACE}${COMPOSE_PROJECT_NAME}_${DB_FUNCTIONAL_SERVICE_FOLDER}:latest"
+    container_name: "${COMPOSE_PROJECT_NAME}_${DB_FUNCTIONAL_SERVICE_FOLDER}"
+    env_file:
+      - .env
+    restart: "no"
+    #    restart: on-failure
+    networks:
+      rmq_network:
+      postgres_fs_network:
+
+  postgres_fs:
+    profiles:
+      - crud
+      - prod
+    container_name: "${COMPOSE_PROJECT_NAME}_postgres_fs_container"
+    image: postgres
+    environment:
+      PGDATA: /data/postgres
+    env_file:
+      - "${DB_FUNCTIONAL_SERVICE_FOLDER}/.env.secret.postgres"
+    volumes:
+      - postgres_fs_volume:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      postgres_fs_network:
+        aliases:
+          - "${POSTGRES_FS_ALIAS}"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin_fs:
+    profiles:
+      - crud
+    container_name: "${COMPOSE_PROJECT_NAME}_pgadmin_fs_container"
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_fs_volume:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - postgres_fs_network
+    restart: unless-stopped
+
+
+networks:
+  # db_functional_service
+  postgres_fs_network:
+    name: "${POSTGRES_FS_NETWORK_NAME}"
+
+  # External
+  rmq_network:
+    name: "${RMQ_NET}"
+    external: true
+
+
+#  To reuse volumes across multiple services
+volumes:
+  # db_functional_service
+  postgres_fs_volume:
+    name: "${POSTGRES_FS_VOLUME_NAME}"
+  pgadmin_fs_volume:
+    name: "${PGADMIN_FS_VOLUME_NAME}"
+
+  # data_preprocessing
+  unprocessed_parser_bot_csv_volume:
+    name: "${UNPROCESSED_PARSER_BOT_CSV_VOLUME_NAME}"
+    external: true
+
+  # pdf_generation
+  generated_offers:
+    name: "${GENERATED_OFFERS_VOLUME_NAME}"
+    external: true
+
+  # parser bot
+  parser_bot_csv_volume:
+    name: "${PARSER_BOT_CSV_VOLUME_NAME}"
+    external: true

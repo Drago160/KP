@@ -1,0 +1,87 @@
+[build-system]
+requires = [
+    "setuptools",
+    "setuptools-scm"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "db_functional_service"
+version = "0.1.0"
+authors = [
+    {name = "Egor Vashkevich", email = "goshikvash@gmail.com"}
+]
+maintainers = [
+    {name = "Egor Vashkevich", email = "goshikvash@gmail.com"}
+]
+description = "db_functional_service"
+readme = "README.md"
+requires-python = ">=3.10"
+#license = {text = "LICENSE"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dynamic = [
+    "dependencies",
+#    "optional-dependencies",
+#    "version"
+]
+
+################################################################################
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
+#include = ["my_package*"]  # package names should match these glob patterns (["*"] by default)
+#exclude = ["my_package.tests*"]  # exclude packages matching these glob patterns (empty by default)
+namespaces = false  # true by default, while true - scan folders only with __init__.py
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+#optional-dependencies = {dev = { file = ["requirements-dev.txt"] }}
+
+[tool.setuptools]
+include-package-data = true
+#zip_safe = false
+
+#[tool.setuptools_scm]
+#version_file = "crud/__version__.py"
+
+################################################################################
+
+[project.scripts]
+run_db_functional_service = "db_service.main:main"
+
+################################################################################
+
+# Pytest configuration:
+# 1) https://docs.pytest.org/en/7.1.x/reference/reference.html#configuration-options
+# 2) https://habr.com/ru/articles/448796/
+
+[tool.pytest.ini_options]
+minversion = "8.2.0"
+addopts = "-rsxX -l --tb=short --strict"
+#addopts = "-rsxX -l --tb=short --strict -s" # enforce output
+testpaths = [
+    "tests",
+]
+norecursedirs = [
+    ".*",
+    ".venv*",
+    "src",
+    "*.egg",
+    "dist",
+    "build",
+]
+python_classes = [
+    "*Test",
+    "Test*",
+    "*Suite",
+]
+python_files = [
+    "test_*",
+    "*_test",
+]
+python_functions = [
+    "test_*",
+    "*_test",
+]

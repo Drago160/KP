@@ -1,0 +1,124 @@
+version: "3.8"
+
+# Entry points are set inside dockerfiles of each service.
+
+services:
+  data_preprocessing:
+    profiles:
+      - prod
+    build:
+      context: "${DATA_PREPROCESSING_FOLDER}"
+      dockerfile: Dockerfile
+    image: "${DOCKER_REGISTRY_NAMESPACE}${COMPOSE_PROJECT_NAME}_${DATA_PREPROCESSING_FOLDER}:latest"
+    container_name: "${COMPOSE_PROJECT_NAME}_${DATA_PREPROCESSING_FOLDER}"
+    env_file:
+      - .env
+    volumes:
+      - "parser_bot_csv_volume:${PARSER_BOT_CSV_VOLUME_PATH}"
+      - "unprocessed_parser_bot_csv_volume:${UNPROCESSED_PARSER_BOT_CSV_VOLUME_PATH}"
+    restart: "no"
+    #    restart: on-failure
+    networks:
+      rmq_network:
+
+  ml_generation:
+    profiles:
+      - prod
+    build:
+      context: "${ML_GENERATION_FOLDER}"
+      dockerfile: Dockerfile
+    image: "${DOCKER_REGISTRY_NAMESPACE}${COMPOSE_PROJECT_NAME}_${ML_GENERATION_FOLDER}:latest"
+    container_name: "${COMPOSE_PROJECT_NAME}_${ML_GENERATION_FOLDER}"
+    env_file:
+      - .env
+    #    volumes:
+    #      - /home/ownstreamer/Proga/MIPT/InnovationWorkshop/CorpApp/workspace/scco/scco/clients_messages:/clients_messages/
+    restart: "no"
+    #    restart: on-failure
+    networks:
+      rmq_network:
+
+  pdf_generation:
+    profiles:
+      - prod
+    build:
+      context: "${PDF_GENERATION_FOLDER}"
+      dockerfile: Dockerfile
+    image: "${DOCKER_REGISTRY_NAMESPACE}${COMPOSE_PROJECT_NAME}_${PDF_GENERATION_FOLDER}:latest"
+    container_name: "${COMPOSE_PROJECT_NAME}_${PDF_GENERATION_FOLDER}"
+    env_file:
+      - .env
+    restart: "no"
+    #    restart: on-failure
+    volumes:
+      - "generated_offers:${GENERATED_OFFERS_VOLUME_PATH}"
+    networks:
+      rmq_network:
+
+  customer_creator:
+    profiles:
+      - prod
+    build:
+      context: "${CUSTOMER_CREATOR_FOLDER}"
+      dockerfile: Dockerfile
+    image: "${DOCKER_REGISTRY_NAMESPACE}${COMPOSE_PROJECT_NAME}_${CUSTOMER_CREATOR_FOLDER}:latest"
+    container_name: "${COMPOSE_PROJECT_NAME}_${CUSTOMER_CREATOR_FOLDER}"
+    env_file:
+      - .env
+    restart: "no"
+    #    restart: on-failure
+    networks:
+      rmq_network:
+
+  db_functional_service:
+    profiles:
+      - crud
+      - prod
+    build:
+      context: "${DB_FUNCTIONAL_SERVICE_FOLDER}"
+      dockerfile: Dockerfile
+    image: "${DOCKER_REGISTRY_NAMESPACE}${COMPOSE_PROJECT_NAME}_${DB_FUNCTIONAL_SERVICE_FOLDER}:latest"
+    container_name: "${COMPOSE_PROJECT_NAME}_${DB_FUNCTIONAL_SERVICE_FOLDER}"
+    env_file:
+      - .env
+    restart: "no"
+    #    restart: on-failure
+    networks:
+      rmq_network:
+      postgres_fs_network:
+
+
+
+networks:
+  # db_functional_service
+  postgres_fs_network:
+    name: "${POSTGRES_FS_NETWORK_NAME}"
+
+  # External
+  rmq_network:
+    name: "${RMQ_NET}"
+    external: true
+
+
+#  To reuse volumes across multiple services
+volumes:
+  # db_functional_service
+  postgres_fs_volume:
+    name: "${POSTGRES_FS_VOLUME_NAME}"
+  pgadmin_fs_volume:
+    name: "${PGADMIN_FS_VOLUME_NAME}"
+
+  # data_preprocessing
+  unprocessed_parser_bot_csv_volume:
+    name: "${UNPROCESSED_PARSER_BOT_CSV_VOLUME_NAME}"
+    external: true
+
+  # pdf_generation
+  generated_offers:
+    name: "${GENERATED_OFFERS_VOLUME_NAME}"
+    external: true
+
+  # parser bot
+  parser_bot_csv_volume:
+    name: "${PARSER_BOT_CSV_VOLUME_NAME}"
+    external: true

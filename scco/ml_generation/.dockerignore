@@ -1,0 +1,10 @@
+# Python
+*/**/__pycache__/
+
+# Setuptools caching
+*/**/build/
+*/**/dist/
+*/**/*.egg-info/
+
+# Environments
+.venv*
